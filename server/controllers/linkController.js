@@ -4,6 +4,7 @@ import IsValidURL from "../utils/validateUrl.js";
 import { ApiResponse } from "../utils/apiResponse.js";
 import client from "../db.js";
 import { UAParser } from "ua-parser-js";
+import cache from "../utils/cache.js";
 
 const PORT = process.env.PORT ?? 8000;
 
@@ -31,31 +32,46 @@ const shortenURL = asyncHandler(async (req, res) => {
       );
 });
 
-const accessLink = asyncHandler(async (req, res) => {
-    const { link } = req.params;
+function logClick(linkId, req){
     const referrer = req.headers['referer'];
     let ua = UAParser(req.headers['user-agent']);
+
+    const insertQuery = 'INSERT INTO clicks (link_id, referrer, device_type) VALUEs ($1, $2, $3)';
+    client.query(insertQuery, [linkId, referrer, ua.device.type ?? 'desktop']).catch(err => console.error('click insert failed:', err.message));
+
+}
+
+const accessLink = asyncHandler(async (req, res) => {
+    const { link } = req.params;
+    const cacheKey = `link:${link}`;
+
+    const cached = await cache.get(cacheKey);
+    if(cached){
+      const { id, original_url} = JSON.parse(cached);
+      logClick(id, req);
+      console.log(`Found cached!`);
+      return res.redirect(original_url);
+    }
 
     const query = `SELECT id,original_url from links WHERE short_code = $1 AND is_active = true`;
     const result = await client.query(query, [link]);
 
     if (result.rowCount == 0) {
-      res.status(404).json(new ApiResponse(false, "invalid url"));
-      return;
+      return res.status(404).json(new ApiResponse(false, "invalid url"));
     }
+    
+    const row = result.rows[0];
+    await cache.set(cacheKey, JSON.stringify(row), "EX",3600)
 
-    const insertQuery = 'INSERT INTO clicks (link_id, referrer, device_type) VALUEs ($1, $2, $3)';
-    client.query(insertQuery, [result.rows[0].id, referrer, ua.device.type ?? 'desktop']).catch(err => console.error('click insert failed:', err.message));
-
+    logClick(row.id, req);
     res.redirect(result.rows[0].original_url);
-
 });
  
 const getAllUserLinks = asyncHandler(async (req, res) => {
     const user_id = req.user.id;
 
-    const query = `SELECT * FROM links WHERE user_id='${user_id}'`;
-    const result = await client.query(query);
+    const query = 'SELECT * FROM links WHERE user_id= $1';
+    const result = await client.query(query, [user_id]);
     if(result.rowCount == 0){
       res.status(404).json(new ApiResponse(false, "no url found"));
       return;
@@ -68,8 +84,17 @@ const deleteShortenLink = asyncHandler(async (req, res) => {
     const id = req.params.id;
     const user_id = req.user.id;
 
+    const linkResult = await client.query('SELECT short_code FROM links WHERE id = $1 AND user_id = $2',[id, user_id]);
+
     const query = `DELETE from links WHERE user_id = $1 and id=$2`
     const result = await client.query(query, [user_id, id]);
+
+    if(linkResult.rowCount > 0){
+      await Promise.all([
+        cache.del(`link:${linkResult.rows[0].short_code}`),
+        cache.del(`stats:${id}`)
+      ]);
+    }
     
     res.status(201).json(new ApiResponse(true, "Deleted successfully!", {result: result}))
 })
@@ -77,6 +102,12 @@ const deleteShortenLink = asyncHandler(async (req, res) => {
 const getLinkStats = asyncHandler(async (req, res) => {
   const id = req.params.id;
   const user_id = req.user.id;
+  const cacheKey = `stats:${id}`;
+
+  const cached = await cache.get(cacheKey);
+  if(cached){
+    return res.status(200).json(new ApiResponse(true, 'Found link stats data!', JSON.parse(cached)));
+  }
 
   const checkOwnerQuery = 'SELECT id FROM links WHERE id = $1 AND user_id = $2';
   const checkOwnerResult = await client.query(checkOwnerQuery, [id, user_id]);
@@ -100,6 +131,7 @@ const getLinkStats = asyncHandler(async (req, res) => {
     deviceBreakdown: result[3].rows,
   }
 
+  await cache.set(cacheKey, JSON.stringify(data), "EX", 300)
   res.status(200).json(new ApiResponse(true, "Found link stats data!", data))
 })
 

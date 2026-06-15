@@ -19,7 +19,7 @@ export function LinkShortenerForm() {
       setResult(data.data.updated);
     } catch (err) {
       console.log(err);
-      setError(err.message);
+      setError((err as Error).message);
     } finally {
       setIsLoading(false);
     }
@@ -33,63 +33,96 @@ export function LinkShortenerForm() {
   };
 
   return (
-    <div className="w-full max-w-lg">
-      <div className="mb-8 text-center">
-        <h2 className="text-2xl font-bold text-gray-900 dark:text-white">Shorten a URL</h2>
-        <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
-          Paste your long URL below and get a clean short link.
+    <div className="fade-in-up w-full max-w-lg">
+
+      {/* Section header */}
+      <div className="mb-5 text-center">
+        <h2 style={{ fontSize: '22px', fontWeight: 700, marginBottom: '4px' }}>
+          Shorten a URL
+        </h2>
+        <p style={{ fontSize: '14px', color: 'var(--text-secondary)' }}>
+          Paste your long URL and get a clean short link.
         </p>
       </div>
 
-      <div className="flex gap-2">
+      {/* Input row */}
+      <div
+        className="card flex items-center gap-2 p-2"
+        style={{ boxShadow: 'var(--shadow-sm)' }}
+      >
         <input
           type="text"
           value={url}
           onChange={(e) => setUrl(e.target.value)}
           onKeyDown={(e) => e.key === "Enter" && handleSubmit()}
           placeholder="https://example.com/your-very-long-url"
-          className="min-w-0 flex-1 rounded-lg border border-gray-200 bg-white px-4 py-2.5 text-sm text-gray-900 placeholder:text-gray-400 transition focus:border-purple-500 focus:outline-none focus:ring-2 focus:ring-purple-500/20 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-100"
+          className="input"
+          style={{ border: 'none', background: 'transparent', boxShadow: 'none', padding: '8px 12px', flex: 1 }}
         />
         <button
           onClick={handleSubmit}
           disabled={isLoading || !url}
-          className="shrink-0 rounded-lg bg-purple-600 px-5 py-2.5 text-sm font-medium text-white transition hover:bg-purple-700 disabled:cursor-not-allowed disabled:opacity-50"
+          className="btn btn-primary"
+          style={{ flexShrink: 0, padding: '9px 18px' }}
         >
           {isLoading ? (
-            <svg className="h-4 w-4 animate-spin" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-              <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-              <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
-            </svg>
-          ) : (
-            "Shorten"
-          )}
+            <span className="spinner spinner-sm" style={{ borderTopColor: '#fff', borderColor: 'rgba(255,255,255,0.3)' }} />
+          ) : null}
+          {isLoading ? "Shortening…" : "Shorten"}
         </button>
       </div>
 
+      {/* Error */}
       {error && (
-        <div className="mt-3 rounded-lg bg-red-50 px-4 py-3 text-sm text-red-600 dark:bg-red-900/20 dark:text-red-400">
+        <div
+          className="mt-3 rounded-lg px-4 py-3 text-sm"
+          style={{ background: 'var(--error-bg)', color: 'var(--error)' }}
+        >
           {error}
         </div>
       )}
 
+      {/* Result */}
       {result && (
-        <div className="mt-4 flex items-center gap-3 rounded-lg border border-purple-200 bg-purple-50 px-4 py-3 dark:border-purple-800 dark:bg-purple-900/20">
-          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor" className="shrink-0 text-purple-500">
+        <div
+          className="scale-in card mt-3 flex items-center gap-3 px-4 py-3"
+          style={{ borderColor: 'var(--accent-border)', background: 'var(--accent-light)' }}
+        >
+          <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" fill="none" viewBox="0 0 24 24" strokeWidth="2" stroke="currentColor" style={{ color: 'var(--accent)', flexShrink: 0 }}>
             <path strokeLinecap="round" strokeLinejoin="round" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" />
           </svg>
           <a
             href={result}
             target="_blank"
             rel="noopener noreferrer"
-            className="flex-1 truncate text-sm font-medium text-purple-700 hover:underline dark:text-purple-300"
+            className="flex-1 truncate text-sm font-semibold"
+            style={{ color: 'var(--accent)', textDecoration: 'none', fontFamily: 'var(--font-mono)' }}
+            onMouseEnter={(e) => (e.currentTarget.style.textDecoration = 'underline')}
+            onMouseLeave={(e) => (e.currentTarget.style.textDecoration = 'none')}
           >
             {result}
           </a>
           <button
             onClick={handleCopy}
-            className="shrink-0 rounded-md px-3 py-1.5 text-xs font-medium text-purple-600 transition hover:bg-purple-100 dark:text-purple-400 dark:hover:bg-purple-900/50"
+            className="btn btn-sm"
+            style={{
+              background: copied ? 'var(--success)' : 'var(--accent)',
+              color: '#fff',
+              borderColor: 'transparent',
+              flexShrink: 0,
+              transition: 'background 0.2s',
+            }}
           >
-            {copied ? "Copied!" : "Copy"}
+            {copied ? (
+              <>
+                <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" fill="none" viewBox="0 0 24 24" strokeWidth="2.5" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M4.5 12.75l6 6 9-13.5" />
+                </svg>
+                Copied!
+              </>
+            ) : (
+              "Copy"
+            )}
           </button>
         </div>
       )}

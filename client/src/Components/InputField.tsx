@@ -17,7 +17,10 @@ export default function InputField({
 }) {
   return (
     <div className="flex flex-col gap-1.5 text-left">
-      <label htmlFor={id} className="text-sm font-medium text-gray-700 dark:text-gray-300">
+      <label
+        htmlFor={id}
+        style={{ fontSize: '13px', fontWeight: 500, color: 'var(--text-secondary)' }}
+      >
         {label}
       </label>
       <input
@@ -27,7 +30,7 @@ export default function InputField({
         value={value}
         onChange={onChange}
         placeholder={placeholder ?? undefined}
-        className="w-full rounded-lg border border-gray-200 bg-white px-3.5 py-2.5 text-sm text-gray-900 placeholder:text-gray-400 transition focus:border-purple-500 focus:outline-none focus:ring-2 focus:ring-purple-500/20 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-100"
+        className="input"
       />
     </div>
   );
