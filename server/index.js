@@ -14,12 +14,12 @@ app.use(cors());
 app.use(express.json());
 app.use(apiLimiter);
 
-app.use('/', linkRoutes)
-
-app.get('/health', (req, res) => {
+app.get('/api/health', (_req, res) => {
   console.log("Server is running!");
   res.send({ message: "server is running!" });
 });
+
+app.use('/', linkRoutes)
 
 
 app.listen(PORT, () => {
