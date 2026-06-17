@@ -6,7 +6,7 @@ import client from "../db.js";
 import { UAParser } from "ua-parser-js";
 import cache from "../utils/cache.js";
 
-const PORT = process.env.PORT ?? 8000;
+const BASE_URL = "https://https://shortlink-production-0995.up.railway.app";
 
 const shortenURL = asyncHandler(async (req, res) => {
     const { link } = req.body;
@@ -27,7 +27,7 @@ const shortenURL = asyncHandler(async (req, res) => {
       .json(
         new ApiResponse(true, "Created shorted link", {
           originalUrl: link,
-          updated: `${PORT}/${newUrl}`,
+          updated: `${BASE_URL}/${newUrl}`,
         }),
       );
 });
