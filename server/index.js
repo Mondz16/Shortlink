@@ -7,11 +7,21 @@ import { apiLimiter } from "./middleware/rateLimiter.js";
 dotenv.config();
 
 const app = express();
-const API_URL = process.env.API_URL ?? 8000;
+const PORT = process.env.PORT ?? 8000;
+
+const allowedOrigins = process.env.ALLOWED_ORIGINS
+  ? process.env.ALLOWED_ORIGINS.split(',')
+  : ['https://shortlink-mondz.vercel.app'];
 
 app.set("trust proxy", 1);
 app.use(cors({
-  origin: 'https://shortlink-mondz.vercel.app',
+  origin: (origin, callback) => {
+    if (!origin || allowedOrigins.includes(origin)) {
+      callback(null, true);
+    } else {
+      callback(new Error(`CORS: origin ${origin} not allowed`));
+    }
+  },
   credentials: true,
 }));
 app.use(express.json());
@@ -25,6 +35,6 @@ app.get('/api/health', (_req, res) => {
 app.use('/', linkRoutes)
 
 
-app.listen(API_URL, () => {
-  console.log(`Listening to port: ${API_URL}`);
+app.listen(PORT, () => {
+  console.log(`Listening to port: ${PORT}`);
 });
