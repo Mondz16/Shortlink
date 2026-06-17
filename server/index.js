@@ -11,9 +11,8 @@ const API_URL = process.env.API_URL ?? 8000;
 
 app.set("trust proxy", 1);
 app.use(cors({
-  allowedHeaders: [
-    'https://shortlink-mondz.vercel.app'
-  ]
+  origin: 'https://shortlink-mondz.vercel.app',
+  credentials: true,
 }));
 app.use(express.json());
 app.use(apiLimiter);
