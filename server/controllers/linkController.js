@@ -6,7 +6,7 @@ import client from "../db.js";
 import { UAParser } from "ua-parser-js";
 import cache from "../utils/cache.js";
 
-const BASE_URL = "https://https://shortlink-production-0995.up.railway.app";
+const BASE_URL = "https://shortlink-production-0995.up.railway.app";
 
 const shortenURL = asyncHandler(async (req, res) => {
     const { link } = req.body;
