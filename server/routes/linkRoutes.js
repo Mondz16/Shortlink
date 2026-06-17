@@ -11,4 +11,4 @@ linkRoutes.get('/api/link/:id/stats', requireAuth, getLinkStats);
 linkRoutes.delete('/api/link/:id', requireAuth, deleteShortenLink);
 linkRoutes.get('/:link', accessLink);
 
-export default linkRoutes;``
+export default linkRoutes;

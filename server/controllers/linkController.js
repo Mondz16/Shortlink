@@ -27,7 +27,7 @@ const shortenURL = asyncHandler(async (req, res) => {
       .json(
         new ApiResponse(true, "Created shorted link", {
           originalUrl: link,
-          updated: `http://localhost:${PORT}/${newUrl}`,
+          updated: `${PORT}/${newUrl}`,
         }),
       );
 });
