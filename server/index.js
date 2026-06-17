@@ -7,7 +7,7 @@ import { apiLimiter } from "./middleware/rateLimiter.js";
 dotenv.config();
 
 const app = express();
-const PORT = process.env.PORT ?? 8000;
+const API_URL = process.env.API_URL ?? 8000;
 
 app.set("trust proxy", 1);
 app.use(cors());
@@ -22,6 +22,6 @@ app.get('/api/health', (_req, res) => {
 app.use('/', linkRoutes)
 
 
-app.listen(PORT, () => {
-  console.log(`Listening to port: http://localhost:${PORT}`);
+app.listen(API_URL, () => {
+  console.log(`Listening to port: ${API_URL}`);
 });
